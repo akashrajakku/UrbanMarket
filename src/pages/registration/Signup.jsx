@@ -1,103 +1,160 @@
-import { useContext, useState } from 'react';
-import { Link } from 'react-router-dom'
-import myContext from '../../context/data/myContext';
-import { toast } from 'react-toastify';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth, fireDB } from '../../firebase/FirebaseConfig';
-import { Timestamp, addDoc, collection } from 'firebase/firestore';
-import Loader from '../../components/loader/Loader';
+/* eslint-disable react/no-unescaped-entities */
+import { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import myContext from "../../context/myContext";
+import { Timestamp, addDoc, collection } from "firebase/firestore";
+import { auth, fireDB } from "../../firebase/FirebaseConfig";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import toast from "react-hot-toast";
+import Loader from "../../components/loader/Loader";
 
-function Signup() {
-    const [name, setName] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-
+const Signup = () => {
     const context = useContext(myContext);
-    const { loading, setLoading } = context;
+    const {loading, setLoading } = context;
 
-    const signup = async () => {
-        if (name === "" || email === "" || password === "") {
-            return toast.error("All fields are required")
+    // navigate 
+    const navigate = useNavigate();
+
+    // User Signup State 
+    const [userSignup, setUserSignup] = useState({
+        name: "",
+        email: "",
+        password: "",
+        role: "user"
+    });
+
+    /**========================================================================
+     *                          User Signup Function 
+    *========================================================================**/
+
+    const userSignupFunction = async () => {
+        // validation 
+        if (userSignup.name === "" || userSignup.email === "" || userSignup.password === "") {
+            toast.error("All Fields are required")
         }
 
-        if (password.length<6) {
-            return toast.error("Password should contain minimum 6 characters")
-        }
-
-        setLoading(true)
+        setLoading(true);
         try {
-            const users = await createUserWithEmailAndPassword(auth, email, password);
+            const users = await createUserWithEmailAndPassword(auth, userSignup.email, userSignup.password);
 
-           
-
+            // create user object
             const user = {
-                name: name,
-                uid: users.user.uid,
+                name: userSignup.name,
                 email: users.user.email,
-                time : Timestamp.now()
+                uid: users.user.uid,
+                role: userSignup.role,
+                time: Timestamp.now(),
+                date: new Date().toLocaleString(
+                    "en-US",
+                    {
+                        month: "short",
+                        day: "2-digit",
+                        year: "numeric",
+                    }
+                )
             }
-            const userRef = collection(fireDB, "users")
-            await addDoc(userRef, user);
-            toast.success("Signup Succesfully")
-            setName("");
-            setEmail("");
-            setPassword("");
-            setLoading(false)
-            
+
+            // create user Refrence
+            const userRefrence = collection(fireDB, "user")
+
+            // Add User Detail
+            addDoc(userRefrence, user);
+
+            setUserSignup({
+                name: "",
+                email: "",
+                password: ""
+            })
+
+            toast.success("Signup Successfully");
+
+            setLoading(false);
+            navigate('/login')
         } catch (error) {
-            console.log(error)
-            setLoading(false)
+            console.log(error);
+            setLoading(false);
         }
+
     }
-
     return (
-        <div className=' flex justify-center items-center h-screen'>
+        <div className='flex justify-center items-center h-screen'>
             {loading && <Loader/>}
-            <div className=' bg-gray-800 px-10 py-10 rounded-xl '>
-                <div className="">
-                    <h1 className='text-center text-white text-xl mb-4 font-bold'>Signup</h1>
+            {/* Login Form  */}
+            <div className="login_Form bg-pink-50 px-8 py-6 border border-pink-100 rounded-xl shadow-md">
+
+                {/* Top Heading  */}
+                <div className="mb-5">
+                    <h2 className='text-center text-2xl font-bold text-pink-500 '>
+                        Signup
+                    </h2>
                 </div>
-                <div>
-                    <input type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        name='name'
-                        className=' bg-gray-600 mb-4 px-2 py-2 w-full lg:w-[20em] rounded-lg text-white placeholder:text-gray-200 outline-none'
-                        placeholder='Name'
+
+                {/* Input One  */}
+                <div className="mb-3">
+                    <input
+                        type="text"
+                        placeholder='Full Name'
+                        value={userSignup.name}
+                        onChange={(e) => {
+                            setUserSignup({
+                                ...userSignup,
+                                name: e.target.value
+                            })
+                        }}
+                        className='bg-pink-50 border border-pink-200 px-2 py-2 w-96 rounded-md outline-none placeholder-pink-200'
                     />
                 </div>
 
-                <div>
-                    <input type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        name='email'
-                        className=' bg-gray-600 mb-4 px-2 py-2 w-full lg:w-[20em] rounded-lg text-white placeholder:text-gray-200 outline-none'
-                        placeholder='Email'
+                {/* Input Two  */}
+                <div className="mb-3">
+                    <input
+                        type="email"
+                        placeholder='Email Address'
+                        value={userSignup.email}
+                        onChange={(e) => {
+                            setUserSignup({
+                                ...userSignup,
+                                email: e.target.value
+                            })
+                        }}
+                        className='bg-pink-50 border border-pink-200 px-2 py-2 w-96 rounded-md outline-none placeholder-pink-200'
                     />
                 </div>
-                <div>
+
+                {/* Input Three  */}
+                <div className="mb-5">
                     <input
                         type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className=' bg-gray-600 mb-4 px-2 py-2 w-full lg:w-[20em] rounded-lg text-white placeholder:text-gray-200 outline-none'
                         placeholder='Password'
+                        value={userSignup.password}
+                        onChange={(e) => {
+                            setUserSignup({
+                                ...userSignup,
+                                password: e.target.value
+                            })
+                        }}
+                        className='bg-pink-50 border border-pink-200 px-2 py-2 w-96 rounded-md outline-none placeholder-pink-200'
                     />
                 </div>
-                <div className=' flex justify-center mb-3'>
+
+                {/* Signup Button  */}
+                <div className="mb-5">
                     <button
-                        onClick={signup}
-                        className=' bg-red-500 w-full text-white font-bold  px-2 py-2 rounded-lg'>
+                        type='button'
+                        onClick={userSignupFunction}
+                        className='bg-pink-500 hover:bg-pink-600 w-full text-white text-center py-2 font-bold rounded-md '
+                    >
                         Signup
                     </button>
                 </div>
+
                 <div>
-                    <h2 className='text-white'>Have an account <Link className=' text-red-500 font-bold' to={'/login'}>Login</Link></h2>
+                    <h2 className='text-black'>Have an account <Link className=' text-pink-500 font-bold' to={'/login'}>Login</Link></h2>
                 </div>
+
             </div>
         </div>
-    )
+    );
 }
 
-export default Signup
+export default Signup;

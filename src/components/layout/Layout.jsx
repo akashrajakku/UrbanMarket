@@ -1,18 +1,17 @@
-//layout ka use hum isliye krte h ki kuch aise component hote h jaise ki navbar, footer etc to wo humein hr page pr chahiye hota hai aur unke bich ke content change hote rhte hain , isliye hum layout naam k component ko bnate hain
+import Footer from "../footer/Footer";
+import Navbar from "../navbar/Navbar";
 
-import React from 'react'
-import Navbar from '../navbar/Navbar'
-import Footer from '../footer/Footer'
-function layout({children}) {
-  return (
-    <div>
-        <Navbar />
-        <div className="content">
-            {children}
+/* eslint-disable react/prop-types */
+const Layout = ({ children }) => {
+    return (
+        <div>
+            <Navbar />
+            <div className="main-content min-h-screen">
+                {children}
+            </div>
+            <Footer />
         </div>
-        <Footer />
-    </div>
-  )
+    );
 }
 
-export default layout
+export default Layout;
